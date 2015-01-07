@@ -1,0 +1,24 @@
+{
+  "name": "xkcd",
+  "version": "0.1.0",
+  "description": "A server to serve XKCD comic metadata to the iPhone XKCD on the go app developed by Clay Reimann",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js",
+    "scrape": "node scrape.js"
+  },
+  "keywords": [
+    "xkcd"
+  ],
+  "author": "Clay Reimann",
+  "license": "BSD",
+  "dependencies": {
+    "hapi": "~8.0.0",
+    "sqlite3": "~3.0.4",
+    "xml": "~1.0.0",
+    "xmlbuilder": "~2.4.5",
+    "request": "~2.51.0",
+    "cheerio": "~0.18.0"
+  }
+}

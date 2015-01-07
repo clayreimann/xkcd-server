@@ -1,0 +1,31 @@
+---
+- hosts: all
+  tasks:
+    - name: Install epel-repo rpm
+      yum: name=http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm state=present
+      sudo: yes
+      run_once: true
+
+    - name: Remove Apache
+      yum: name=httpd state=absent
+
+    - name: Update the system
+      yum: name=* state=latest
+      sudo: yes
+
+    - name: Ensure node is present
+      yum: name={{item}} state=present enablerepo=epel
+      with_items:
+        - nodejs
+        - npm
+      sudo: yes
+
+    - name: Ensure nginx is present
+      yum: name=nginx state=present enablerepo=epel
+      sudo: yes
+      notify: Start nginx
+
+  handlers:
+    - name: Start nginx
+      service: name=nginx state=started
+      sudo: yes
