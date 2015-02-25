@@ -124,13 +124,19 @@ server.start(function (err) {
         $('entry').each(function(i, elem) {
           imgTag = Cheerio.load($(this).children('summary').text())('img');
           num = $(this).children('id').text();
-          num = /http:\/\/xkcd.com\/(\d\d\d\d)/.exec(num)[1];
+          num = /http:\/\/xkcd.com\/(\d+)/.exec(num)[1];
 
           title = $(this).children('title').text();
           url = imgTag.attr('src');
           altText = imgTag.attr('title');
 
           Comic.addComic(num, title, url, altText, db);
+          comics.push({
+            'num': num,
+            'url': url,
+            'title': title,
+            'altText': altText
+          })
         });
       });
     }, 60 * 60 * 1000);
