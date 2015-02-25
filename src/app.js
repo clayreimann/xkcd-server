@@ -1,6 +1,6 @@
 var Hapi    = require('hapi')
   , XML     = require('xmlbuilder')
-  , Comic   = require('./Comic')
+  , Comic   = require('./modules/comic')
   , Request = require('request')
   , Cheerio = require('cheerio')
   ;
@@ -13,11 +13,12 @@ db = Comic.getDatabase();
 db.each("SELECT * FROM comic", function(err, row) {
   var num = parseInt(row.num, 10)
     , comic = {
-    'num': num,
-    'url': row.url,
-    'title': row.title,
-    'altText': row.altText
-  }
+        'num': num,
+        'url': row.url,
+        'title': row.title,
+        'altText': row.altText
+      }
+    ;
 
   comics[num] = comic;
   if ((num > comics.lastComic) || (comics.lastComic === undefined)) {
@@ -31,7 +32,7 @@ function getComics(fromComic, toComic) {
     ;
 
     // load up the requested comics
-    for (i = fromComic; i < toComic; i++) {
+    for (i = fromComic; i <= toComic ; i++) {
       if (comics[i]) {
         requestedComics.comics.push(comics[i]);
       }
@@ -63,23 +64,23 @@ server.route({
       for (i = 0; i < requestedComics.comics.length; i++) {
         comic = requestedComics.comics[i];
         comicNode = root.ele('comic');
-        comicNode.att('title', comic.title);
-        comicNode.att('number', comic.num);
+        comicNode.ele('title', comic.title);
+        comicNode.ele('id', comic.num);
 
         if (!comic.url) {
           console.log('No URL for: '+comic.num);
         } else {
-          comicNode.att('url', comic.url);
+          comicNode.ele('url', comic.url);
         }
         
         if (!comic.altText) {
           console.log('No alt text for: '+comic.num);
         } else {
-          comicNode.att('altText', comic.altText);
+          comicNode.ele('alt', comic.altText);
         }
       }
     
-    reply(root.end())
+    reply(root.end().replace(/&/, '&amp;'))
       .type('text/xml');
   }
 });
@@ -101,11 +102,22 @@ server.route({
   }
 });
 
+server.route({
+  method: '*',
+  path: '/{p*}',
+  handler: function(request, reply) {
+    return reply('The route ' + request.path + ' was not found').code(404);
+  }
+});
+
 // start the server
 server.start(function (err) {
     console.log('Server started at: ' + server.info.uri);
+
     // setup a timer that will check for new comics every day
     setInterval(function() {
+      console.log('Checking for updates at: ' + (new Date()).toTimeString())
+
       Request('http://xkcd.com/atom.xml', function(error, response, body) {
         var $, entries, entry, imgTag, num, title, altText, url;
         $ = Cheerio.load(body);
@@ -121,5 +133,5 @@ server.start(function (err) {
           Comic.addComic(num, title, url, altText, db);
         });
       });
-    }, 24 * 60 * 60 * 1000);
+    }, 60 * 60 * 1000);
 });
